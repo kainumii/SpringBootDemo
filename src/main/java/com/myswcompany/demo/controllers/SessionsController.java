@@ -70,7 +70,7 @@ public class SessionsController {
     public ResponseEntity<Session> updateSession(
             @Valid
             @PathVariable(value = "id") Long id,
-            @RequestBody Session session) throws ResourceNotFoundException
+            @RequestBody Session session) throws ResourceNotFoundException, MethodArgumentNotValidException
     {
         Session newSession = sessionRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Session not found with this id: " + id));

@@ -3,6 +3,9 @@ package com.myswcompany.demo.models;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.Type;
 
 import java.util.List;
@@ -15,10 +18,25 @@ public class Speaker {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long speaker_id;
 
+    @Size(max = 30)
+    @NotBlank
     private String first_name;
+
+    @Size(min = 2, max = 30)
+    @NotBlank(message = "Last name is mandatory")
+    @NotNull
     private String last_name;
+
+    @Size(max = 40)
+    @NotBlank
     private String title;
+
+    @Size(max = 50)
+    @NotBlank
     private String company;
+
+    @Size(max = 2000)
+    @NotBlank
     private String speaker_bio;
 
     //@Lob
