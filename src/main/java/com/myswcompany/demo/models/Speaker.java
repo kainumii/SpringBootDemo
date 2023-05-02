@@ -18,25 +18,23 @@ public class Speaker {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long speaker_id;
 
-    @Size(max = 30)
+    @Size(min = 2, max = 30, message = "Size of the first_name has to be between 2 - 30 characters")
     @NotBlank
     private String first_name;
 
     @Size(min = 2, max = 30)
     @NotBlank(message = "Last name is mandatory")
-    @NotNull
     private String last_name;
 
-    @Size(max = 40)
+    @Size(min = 2, max = 40)
     @NotBlank
     private String title;
 
-    @Size(max = 50)
+    @Size(min = 2, max = 50)
     @NotBlank
     private String company;
 
     @Size(max = 2000)
-    @NotBlank
     private String speaker_bio;
 
     //@Lob

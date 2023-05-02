@@ -20,6 +20,8 @@ import java.util.List;
 @ControllerAdvice
 public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExceptionHandler
 {
+    // MethodArgumentNotValidException –>
+    // This exception is thrown when an argument annotated with @Valid failed validation:
     @Override
     protected ResponseEntity<Object>  handleMethodArgumentNotValid(
             MethodArgumentNotValidException ex,
@@ -29,10 +31,10 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 
         List<String> errors = new ArrayList<>();
 
-        List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
-        fieldErrors.forEach(err -> {
-            errors.add(String.valueOf(err));
-        });
+        for(FieldError error : ex.getBindingResult().getFieldErrors())
+        {
+            errors.add(error.getField() + ": " + error.getDefaultMessage());
+        }
 
         Collections.sort(errors);
 

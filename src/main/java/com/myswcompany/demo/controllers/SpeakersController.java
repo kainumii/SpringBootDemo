@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.fge.jsonpatch.JsonPatch;
 import com.github.fge.jsonpatch.JsonPatchException;
-import com.myswcompany.demo.exceptions.ContentNotAllowedException;
+import com.myswcompany.demo.exceptions.ErrorDetails;
 import com.myswcompany.demo.exceptions.ResourceNotFoundException;
 import com.myswcompany.demo.models.Speaker;
 import com.myswcompany.demo.repositories.SpeakerRepository;
@@ -13,11 +13,11 @@ import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.WebRequest;
 
 import java.rmi.ServerException;
+import java.util.Date;
 import java.util.List;
 
 // POST is used to create new resource.
@@ -67,10 +67,18 @@ public class SpeakersController {
         }
     }
 
-    // PATCH is used when we want to apply the partial update to the resource and does not want to update the entire resource.
+    // PATCH is used when we want to apply the partial update to the resource and
+    // does not want to update the entire resource.
     //
     // Postman: Headers -> Content-Type: application/json-patch+json
     // e.x. http://localhost:8080/api/v1/speakers/44
+    // [
+    //    {
+    //    "op":"replace",
+    //    "path":"/first_name",
+    //    "value":"moi vaan"
+    //    }
+    //]
     //
     // JSON Patch operations
     // represented by a single op object
@@ -94,7 +102,7 @@ public class SpeakersController {
     // 2. convert target Speaker into the "com.fasterxml.jackson.databind.JsonNode" and
     // pass it to the "JsonPatch.apply" method to apply the patch.
     // 3. call objectMapper.treeToValue method, which binds the data in the patched
-    // com.fas  terxml.jackson.databind.JsonNode to the Speaker type. This is our patched Speaker instance
+    // com.fasterxml.jackson.databind.JsonNode to the Speaker type. This is our patched Speaker instance
     // 4. return the patched Speaker instance
     @PatchMapping(value = "/speakers/{id}", consumes = "application/json-patch+json")
     public ResponseEntity<Speaker> updateSpeaker(
@@ -106,7 +114,7 @@ public class SpeakersController {
             Speaker currentSpeaker = speakerRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Speaker not found: " + id));
 
-            Speaker patched = applyPatchToSpeaker(patch, currentSpeaker);
+            Speaker patched =  applyPatchToSpeaker(patch, currentSpeaker);
             speakerRepository.saveAndFlush(patched);
 
             return ResponseEntity.ok(patched);
@@ -119,7 +127,9 @@ public class SpeakersController {
 
     private Speaker applyPatchToSpeaker(JsonPatch patch, Speaker target) throws JsonPatchException, JsonProcessingException {
         JsonNode patched = patch.apply(objectMapper.convertValue(target, JsonNode.class));
-        return objectMapper.treeToValue(patched, Speaker.class);
+        Speaker s = objectMapper.treeToValue(patched, Speaker.class);
+
+        return s;
     }
 
     // When a client needs to replace an existing Resource entirely, they can use PUT.
@@ -132,33 +142,40 @@ public class SpeakersController {
     @PutMapping(value = "/speakers/{id}")
     public ResponseEntity<Speaker> saveSpeaker(
             @PathVariable Long id,
-            @Valid
-            @RequestBody Speaker new_speaker) throws ResourceNotFoundException {
+            @Valid @RequestBody Speaker new_speaker) throws ResourceNotFoundException {
         // because this is a PUT, we expect all attributes to be passed in. A PATCH would only need what has changed.
-        // TODO: Add validation that all attributes are passed in, otherwise return a 400 bad payload
-        // TODO: @PutMapping to update the content of the address book based on the request URI.
-        //  If the URI isn't found, it will create a new address and store it in the database:
+        // if the URI isn't found, it will create a new speaker and store it in the database:
 
+        return speakerRepository.findById(id)
+                .map(speaker -> {
+                    speaker.setFirst_name(new_speaker.getFirst_name());
+                    speaker.setLast_name(new_speaker.getLast_name());
+                    speaker.setTitle(new_speaker.getTitle());
+                    speaker.setCompany(new_speaker.getCompany());
+                    speaker.setSpeaker_bio(new_speaker.getSpeaker_bio());
 
-        Speaker currentSpeaker = speakerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Speaker not found: " + id));
-
-        currentSpeaker.setFirst_name(new_speaker.getFirst_name());
-        currentSpeaker.setLast_name(new_speaker.getLast_name());
-        currentSpeaker.setTitle(new_speaker.getTitle());
-        currentSpeaker.setCompany(new_speaker.getCompany());
-        currentSpeaker.setSpeaker_bio(new_speaker.getSpeaker_bio());
-
-        speakerRepository.saveAndFlush(currentSpeaker);
-        return new ResponseEntity<>(currentSpeaker, HttpStatus.OK);
+                    return new ResponseEntity<>(speaker, HttpStatus.OK);
+                }).orElseGet(() -> {
+                    Speaker joo = speakerRepository.saveAndFlush(new_speaker);
+                    return new ResponseEntity<>(joo, HttpStatus.CREATED);
+                });
     }
 
     @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
     public void delete(@PathVariable Long id) throws ResourceNotFoundException{
 
         speakerRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Speaker not found: " + id));
+                () -> new ResourceNotFoundException("Speaker not found with this id: " + id));
 
         speakerRepository.deleteById(id);
+    }
+
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest req)
+    {
+        String desc = req.getDescription(false);
+        ErrorDetails details = new ErrorDetails(new Date(), ex.getMessage(), desc);
+
+        return new ResponseEntity<>(details, HttpStatus.NOT_FOUND);
     }
 }

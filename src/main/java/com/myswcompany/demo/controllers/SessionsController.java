@@ -86,7 +86,7 @@ public class SessionsController {
     public void deleteSession(
             @PathVariable Long id) throws ResourceNotFoundException {
         Session s = sessionRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Session not found with this id :: " + id));
+                () -> new ResourceNotFoundException("Session not found with this id: " + id));
 
         sessionRepository.delete(s);
     }
