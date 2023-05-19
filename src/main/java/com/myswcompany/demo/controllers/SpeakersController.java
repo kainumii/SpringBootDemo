@@ -11,6 +11,7 @@ import com.myswcompany.demo.models.Speaker;
 import com.myswcompany.demo.repositories.SpeakerRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -44,7 +45,8 @@ public class SpeakersController {
     @GetMapping("/speakers")
     public List<Speaker> listAllSpeakers()
     {
-        return speakerRepository.findAll();
+        List<Speaker> speakers = speakerRepository.findAll(Sort.by(Sort.Direction.ASC, "firstName"));
+        return speakers;
     }
 
     @GetMapping
@@ -142,7 +144,7 @@ public class SpeakersController {
     @PutMapping(value = "/speakers/{id}")
     public ResponseEntity<Speaker> saveSpeaker(
             @PathVariable Long id,
-            @Valid @RequestBody Speaker new_speaker) throws ResourceNotFoundException {
+            @Valid @RequestBody Speaker new_speaker)  {
         // because this is a PUT, we expect all attributes to be passed in. A PATCH would only need what has changed.
         // if the URI isn't found, it will create a new speaker and store it in the database:
 
@@ -154,28 +156,32 @@ public class SpeakersController {
                     speaker.setCompany(new_speaker.getCompany());
                     speaker.setSpeaker_bio(new_speaker.getSpeaker_bio());
 
-                    return new ResponseEntity<>(speaker, HttpStatus.OK);
+                    var joo = speakerRepository.saveAndFlush(speaker);
+
+                    return new ResponseEntity<>(joo, HttpStatus.OK);
                 }).orElseGet(() -> {
                     Speaker joo = speakerRepository.saveAndFlush(new_speaker);
                     return new ResponseEntity<>(joo, HttpStatus.CREATED);
                 });
     }
 
-    @RequestMapping(value = "{id}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable Long id) throws ResourceNotFoundException{
+    @DeleteMapping(value = "/speakers/{id}")
+    public ResponseEntity<Long> delete(@PathVariable Long id) throws ResourceNotFoundException{
 
-        speakerRepository.findById(id).orElseThrow(
+        Speaker s = speakerRepository.findById(id).orElseThrow(
                 () -> new ResourceNotFoundException("Speaker not found with this id: " + id));
 
-        speakerRepository.deleteById(id);
+       speakerRepository.delete(s);
+
+        return new ResponseEntity<>(id, HttpStatus.OK);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<?> handleResourceNotFoundException(ResourceNotFoundException ex, WebRequest req)
+    public ResponseEntity<?> handleResourceNotFoundException(Throwable ex, WebRequest req)
     {
         String desc = req.getDescription(false);
         ErrorDetails details = new ErrorDetails(new Date(), ex.getMessage(), desc);
 
-        return new ResponseEntity<>(details, HttpStatus.NOT_FOUND);
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(details);
     }
 }

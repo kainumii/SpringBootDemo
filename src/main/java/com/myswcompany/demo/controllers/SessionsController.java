@@ -4,9 +4,11 @@ import com.myswcompany.demo.exceptions.ErrorDetails;
 import com.myswcompany.demo.exceptions.ResourceNotFoundException;
 import com.myswcompany.demo.exceptions.ContentNotAllowedException;
 import com.myswcompany.demo.models.Session;
+import com.myswcompany.demo.models.Speaker;
 import com.myswcompany.demo.repositories.SessionRepository;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -28,8 +30,8 @@ public class SessionsController {
     @GetMapping("/sessions")
     public List<Session> listAllSessions()
     {
-        List<Session> list = sessionRepository.findAll();
-        return list;
+        List<Session> sessions = sessionRepository.findAll(Sort.by(Sort.Direction.ASC, "sessionName"));
+        return sessions;
     }
 
     @GetMapping("/sessions/{id}")
@@ -68,18 +70,22 @@ public class SessionsController {
 
     @PutMapping("/sessions/{id}")
     public ResponseEntity<Session> updateSession(
-            @Valid
             @PathVariable(value = "id") Long id,
-            @RequestBody Session session) throws ResourceNotFoundException, MethodArgumentNotValidException
+            @Valid @RequestBody Session session)
     {
-        Session newSession = sessionRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("Session not found with this id: " + id));
+        return sessionRepository.findById(id).map(sess -> {
+            sess.setSession_name(session.getSession_name());
+            sess.setSession_description(session.getSession_description());
+            sess.setSession_length(session.getSession_length());
 
-        newSession.setSession_name(session.getSession_name());
+            var joo = sessionRepository.saveAndFlush(sess);
 
-        Session updatedSession = sessionRepository.saveAndFlush(newSession);
-//        return ResponseEntity.ok(updatedSession);
-        return new ResponseEntity<>(updatedSession, HttpStatus.OK);
+            return new ResponseEntity<>(joo, HttpStatus.OK);
+        }).orElseGet(() -> {
+            Session created = sessionRepository.saveAndFlush(session);
+
+            return new ResponseEntity<>(created, HttpStatus.CREATED);
+        });
     }
 
     @DeleteMapping("/sessions/{id}")

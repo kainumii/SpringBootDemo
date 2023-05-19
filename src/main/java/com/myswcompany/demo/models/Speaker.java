@@ -16,15 +16,19 @@ public class Speaker {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long speaker_id;
+    @Column(name = "speaker_id")
+    // https://stackoverflow.com/questions/23456197/spring-data-jpa-repository-underscore-on-entity-column-name
+    private Long speakerId;
 
+    @Column(name = "first_name")
     @Size(min = 2, max = 30, message = "Size of the first_name has to be between 2 - 30 characters")
     @NotBlank
-    private String first_name;
+    private String firstName;
 
     @Size(min = 2, max = 30)
     @NotBlank(message = "Last name is mandatory")
-    private String last_name;
+    @Column(name = "last_name")
+    private String lastName;
 
     @Size(min = 2, max = 40)
     @NotBlank
@@ -35,7 +39,8 @@ public class Speaker {
     private String company;
 
     @Size(max = 2000)
-    private String speaker_bio;
+    @Column(name = "speaker_bio")
+    private String speakerBio;
 
     //@Lob
     //@Type(type="org.hibernate.type.BinaryType")
@@ -65,27 +70,27 @@ public class Speaker {
     }
 
     public Long getSpeaker_id() {
-        return speaker_id;
+        return speakerId;
     }
 
     public void setSpeaker_id(Long speaker_id) {
-        this.speaker_id = speaker_id;
+        this.speakerId = speaker_id;
     }
 
     public String getFirst_name() {
-        return first_name;
+        return firstName;
     }
 
     public void setFirst_name(String first_name) {
-        this.first_name = first_name;
+        this.firstName = first_name;
     }
 
     public String getLast_name() {
-        return last_name;
+        return lastName;
     }
 
     public void setLast_name(String last_name) {
-        this.last_name = last_name;
+        this.lastName = last_name;
     }
 
     public String getTitle() {
@@ -105,10 +110,10 @@ public class Speaker {
     }
 
     public String getSpeaker_bio() {
-        return speaker_bio;
+        return speakerBio;
     }
 
     public void setSpeaker_bio(String speaker_bio) {
-        this.speaker_bio = speaker_bio;
+        this.speakerBio = speaker_bio;
     }
 }

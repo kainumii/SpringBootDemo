@@ -12,23 +12,25 @@ public class Session {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "session_id")
-    private Long session_id;
+    private Long sessionId;
 
     //  a String field constrained with @NotBlank must be not null, and the trimmed length must be greater than zero.
-    @Column(name = "session_name")
+
     @NotBlank
     @Size(max = 80, message = "session name too long")
-    private String session_name;
+    @Column(name = "session_name")
+    private String sessionName;
 
-    @Column(name = "session_description")
-    @NotBlank
+
     @Size(max = 1024)
-    private String session_description;
+    @Column(name = "session_description")
+    private String sessionDescription;
 
-    @Column(name = "session_length")
+
     @Min(5)
     @Max(1000)
-    private Integer session_length;
+    @Column(name = "session_length")
+    private Integer sessionLength;
 
     @ManyToMany
     @JoinTable(
@@ -49,34 +51,34 @@ public class Session {
     }
 
     public Long getSession_id() {
-        return session_id;
+        return sessionId;
     }
 
     public void setSession_id(Long session_id) {
-        this.session_id = session_id;
+        this.sessionId = session_id;
     }
 
     public String getSession_name() {
-        return session_name;
+        return sessionName;
     }
 
     public void setSession_name(String session_name) {
-        this.session_name = session_name;
+        this.sessionName = session_name;
     }
 
     public String getSession_description() {
-        return session_description;
+        return sessionDescription;
     }
 
     public void setSession_description(String session_description) {
-        this.session_description = session_description;
+        this.sessionDescription = session_description;
     }
 
     public Integer getSession_length() {
-        return session_length;
+        return sessionLength;
     }
 
     public void setSession_length(Integer session_length) {
-        this.session_length = session_length;
+        this.sessionLength = session_length;
     }
 }

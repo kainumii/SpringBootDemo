@@ -79,11 +79,11 @@ public class TestSpeakerRestController {
     public void updateSpeakerReturnsSpeakerCreated() throws Exception
     {
         Speaker speaker = new Speaker();
-        speaker.setFirst_name("Iines");
-        speaker.setLast_name("Ankkuli");
-        speaker.setSpeaker_bio("bio");
+        speaker.setFirst_name("Star");
+        speaker.setLast_name("Wars");
+        speaker.setSpeaker_bio("May the 4th be with you");
         speaker.setCompany("Company");
-        speaker.setTitle("Suunnittelija");
+        speaker.setTitle("Technical Writer");
 
         String json = new ObjectMapper().writeValueAsString(speaker);
 
@@ -93,7 +93,7 @@ public class TestSpeakerRestController {
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
-                .andExpect(MockMvcResultMatchers.jsonPath("$.first_name").value("Iines"))
-                .andExpect(MockMvcResultMatchers.jsonPath("$.last_name").value("Ankkuli"));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.first_name").value("Star"))
+                .andExpect(MockMvcResultMatchers.jsonPath("$.last_name").value("Wars"));
     }
 }
